@@ -37,7 +37,7 @@ Para llevar este MVP a una solución de producción completa (Módulo MT), se co
 ---
 
 ## 📱 Instrucciones para la Prueba
-1. Abra el siguiente enlace en una tablet o smartphone: `[INSERTAR_TU_URL_DE_GITHUB_PAGES_AQUÍ]`
+1. Abra el siguiente enlace en una tablet o smartphone: `https://jorgeivanojeda.github.io/maquila-trazabilidad-mvp/`
 2. Active el **Modo Avión** del dispositivo.
 3. Realice varios registros de prueba.
 4. Cierre la pestaña del navegador y vuelva a abrirla: Notará que el contador de registros se mantiene.
