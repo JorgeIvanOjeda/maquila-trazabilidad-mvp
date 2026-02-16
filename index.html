@@ -1,45 +1,95 @@
-<script type="module">
-  // Importar las funciones necesarias de Firebase SDK
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVP Maquila - Solu Now</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-5">
+    <div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-md">
+        <h2 class="text-2xl font-bold mb-6 text-blue-800 text-center">Recepción de Pesca</h2>
+        
+        <form id="maquilaForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium">Especie</label>
+                <select id="especie" class="w-full border p-3 rounded-lg bg-gray-50" required>
+                    <option value="Atun">Atún</option>
+                    <option value="Merluza">Merluza</option>
+                    <option value="Camaron">Camarón</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Peso Entrada (Kg)</label>
+                <input type="number" id="peso" step="0.01" class="w-full border p-3 rounded-lg" placeholder="0.00" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Temperatura (°C)</label>
+                <input type="number" id="temp" step="0.1" class="w-full border p-3 rounded-lg" placeholder="Ej: 2.5" required>
+            </div>
+            <button type="submit" id="btnGuardar" class="w-full bg-blue-600 text-white p-4 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition">
+                GUARDAR REGISTRO
+            </button>
+        </form>
 
-  // Configuración de tu proyecto (Copia esto desde tu consola de Firebase)
-  const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "tu-proyecto.firebaseapp.com",
-    projectId: "tu-proyecto",
-    storageBucket: "tu-proyecto.appspot.com",
-    messagingSenderId: "tu-id",
-    appId: "tu-app-id"
-  };
+        <div id="status" class="mt-6 text-center text-sm font-medium p-2 rounded">
+            </div>
+    </div>
 
-  // Inicializar Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const form = document.getElementById('maquilaForm');
+        // Tu configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAeqoLasbIBc8t94Gc2Vhcl6rYWg-zV1Tc",
+            authDomain: "maquila-pescado.firebaseapp.com",
+            projectId: "maquila-pescado",
+            storageBucket: "maquila-pescado.firebasestorage.app",
+            messagingSenderId: "486143793138",
+            appId: "1:486143793138:web:72ea79529435d00a493d6b",
+            measurementId: "G-CVPPP5WSMF"
+        };
 
-  form.onsubmit = async (e) => {
-    e.preventDefault();
-    
-    const registro = {
-      especie: document.getElementById('especie').value,
-      peso: parseFloat(document.getElementById('peso').value),
-      temp: parseFloat(document.getElementById('temp').value),
-      fecha: new Date().toISOString(),
-      estado_sincronizacion: "enviado_a_nube"
-    };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    try {
-      // Guardar directamente en la colección "recepciones" de Firestore
-      const docRef = await addDoc(collection(db, "recepciones"), registro);
-      console.log("Documento guardado con ID: ", docRef.id);
-      
-      form.reset();
-      alert("Registro guardado exitosamente en la nube.");
-    } catch (error) {
-      console.error("Error al guardar:", error);
-      alert("Error al conectar con la base de datos.");
-    }
-  };
-</script>
+        // ACTIVAR PERSISTENCIA OFFLINE
+        enableIndexedDbPersistence(db).catch((err) => {
+            console.error("Error de persistencia:", err.code);
+        });
+
+        const form = document.getElementById('maquilaForm');
+        const btn = document.getElementById('btnGuardar');
+        const statusDiv = document.getElementById('status');
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            btn.disabled = true;
+            btn.innerText = "PROCESANDO...";
+            
+            const registro = {
+                especie: document.getElementById('especie').value,
+                peso: parseFloat(document.getElementById('peso').value),
+                temp: parseFloat(document.getElementById('temp').value),
+                fecha: new Date().toISOString(),
+                ubicacion: "Planta Ibagué" 
+            };
+
+            try {
+                await addDoc(collection(db, "recepciones"), registro);
+                statusDiv.innerText = "✅ ¡Registro exitoso!";
+                statusDiv.className = "mt-6 text-center text-sm font-medium p-2 rounded bg-green-100 text-green-800";
+                form.reset();
+            } catch (error) {
+                console.error("Error:", error);
+                statusDiv.innerText = "❌ Error al guardar localmente.";
+                statusDiv.className = "mt-6 text-center text-sm font-medium p-2 rounded bg-red-100 text-red-800";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "GUARDAR REGISTRO";
+            }
+        };
+    </script>
+</body>
+</html>
