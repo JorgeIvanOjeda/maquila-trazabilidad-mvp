@@ -32,8 +32,8 @@
             </button>
         </form>
 
-        <div id="status" class="mt-6 text-center text-sm font-medium p-2 rounded">
-            </div>
+        <div id="status" class="mt-6 text-center text-sm font-medium p-2 rounded hidden">
+        </div>
     </div>
 
     <script type="module">
@@ -54,19 +54,16 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ACTIVAR PERSISTENCIA OFFLINE
+        // 1. ACTIVAR PERSISTENCIA OFFLINE DE FIREBASE
         enableIndexedDbPersistence(db).catch((err) => {
             console.error("Error de persistencia:", err.code);
         });
 
         const form = document.getElementById('maquilaForm');
-        const btn = document.getElementById('btnGuardar');
         const statusDiv = document.getElementById('status');
 
-        form.onsubmit = async (e) => {
+        form.onsubmit = (e) => {
             e.preventDefault();
-            btn.disabled = true;
-            btn.innerText = "PROCESANDO...";
             
             const registro = {
                 especie: document.getElementById('especie').value,
@@ -76,19 +73,22 @@
                 ubicacion: "Planta Ibagué" 
             };
 
-            try {
-                await addDoc(collection(db, "recepciones"), registro);
-                statusDiv.innerText = "✅ ¡Registro exitoso!";
-                statusDiv.className = "mt-6 text-center text-sm font-medium p-2 rounded bg-green-100 text-green-800";
-                form.reset();
-            } catch (error) {
-                console.error("Error:", error);
-                statusDiv.innerText = "❌ Error al guardar localmente.";
-                statusDiv.className = "mt-6 text-center text-sm font-medium p-2 rounded bg-red-100 text-red-800";
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "GUARDAR REGISTRO";
-            }
+            // 2. MAGIA OFFLINE: Se quita la espera (await). 
+            // Esto guarda instantáneamente en la tablet y Firebase se encarga de subirlo en silencio cuando haya WiFi.
+            addDoc(collection(db, "recepciones"), registro);
+
+            // 3. RESPUESTA INMEDIATA EN PANTALLA
+            statusDiv.innerText = "✅ ¡Registro guardado exitosamente!";
+            statusDiv.className = "mt-6 text-center text-sm font-medium p-2 rounded bg-green-100 text-green-800 block";
+            
+            // 4. LIMPIAR EL FORMULARIO PARA EL SIGUIENTE PESCADO
+            form.reset();
+
+            // 5. OCULTAR EL MENSAJE DESPUÉS DE 3 SEGUNDOS
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+                statusDiv.classList.remove('block', 'bg-green-100', 'text-green-800');
+            }, 3000);
         };
     </script>
 </body>
